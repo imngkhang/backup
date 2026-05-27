@@ -1,0 +1,16 @@
+#!/bin/sh
+version="$1"
+bootdir="/boot"
+
+# Đổi vmlinuz thành kernel (nếu hệ thống chưa tự đổi)
+if [ -f "$bootdir/vmlinuz-$version" ]; then
+    mv "$bootdir/vmlinuz-$version" "$bootdir/kernel-$version"
+fi
+if [ -f "$bootdir/config-$version" ]; then
+    chmod 600 "$bootdir/config-$version"
+fi
+if [ -f "$bootdir/kernelcache" ]; then
+    rm -f "$bootdir/kernelcache"
+fi
+linux-update-symlinks install $version $bootdir/kernelcache-$version
+

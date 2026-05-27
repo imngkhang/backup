@@ -1,0 +1,9 @@
+[Unit]
+Description=Flatpak Automatic Update Timer
+
+[Timer]
+OnUnitActiveSec=4h
+OnBootSec=15m
+
+[Install]
+WantedBy=timers.target

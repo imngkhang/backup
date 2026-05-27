@@ -1,0 +1,7 @@
+#!/bin/sh
+# Đợi GNOME và D-Bus khởi động xong
+sleep 2
+# Tự động nạp file cấu hình vào dconf hiện tại của user
+if [ -f /etc/dconf/db/local.d/00-gnome-defaults ]; then
+    dconf load /org/gnome/ < /etc/dconf/db/local.d/00-gnome-defaults
+fi

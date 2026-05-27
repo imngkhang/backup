@@ -1,0 +1,28 @@
+#!/bin/sh
+# Khởi tạo trạng thái ban đầu bằng cách kiểm tra thực tế hệ thống
+if systemctl --user is-enabled gnome-session-failed.service 2>/dev/null | grep -q "masked"; then
+    STATUS="masked"
+else
+    STATUS="active"
+fi
+
+while true; do
+    # Kiểm tra xem gdm-settings có đang chạy không
+    if pgrep -f "gdm-settings" > /dev/null; then
+        if [ "$STATUS" = "active" ]; then
+            systemctl --user mask gnome-session-failed.service >/dev/null 2>&1
+            STATUS="masked"
+            # echo "Đã chặn thông báo lỗi GNOME"
+        fi
+    else
+        if [ "$STATUS" = "masked" ]; then
+            # Unmask ngay lập tức khi đóng app
+            systemctl --user unmask gnome-session-failed.service >/dev/null 2>&1
+            STATUS="active"
+            # echo "Đã mở lại thông báo lỗi GNOME"
+        fi
+    fi
+    # Nghỉ 2 giây mỗi vòng lặp để tiết kiệm CPU
+    sleep 2
+done
+

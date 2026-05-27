@@ -1,0 +1,46 @@
+name: Keep Only Last 3 Commits
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  keep-three-commits:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo with full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Trim commit history to 3
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@://github.com"
+          
+          TOTAL_COMMITS=$(git rev-list --count HEAD)
+          echo "Tổng số commit hiện tại là: $TOTAL_COMMITS"
+          
+          if [ "$TOTAL_COMMITS" -gt 3 ]; then
+            echo "Tiến hành dọn dẹp, chỉ giữ lại 3 commit gần nhất..."
+            
+            # Tạo nhánh tạm thời hoàn toàn tách biệt
+            git checkout --orphan temp-clean-history
+            
+            # Thêm tất cả file hiện tại vào nhánh mới
+            git add -A
+            
+            # Tạo commit đầu tiên gộp toàn bộ lịch sử cũ
+            git commit -m "Bản gộp các commit cũ và cập nhật hệ thống"
+            
+            # Ép nhánh tạm này đè lên nhánh main chính thức
+            git branch -f main temp-clean-history
+            git checkout main
+            
+            # Đẩy đè lên GitHub để xóa lịch sử thừa
+            git push origin main --force
+            echo "Dọn dẹp thành công!"
+          else
+            echo "Số lượng commit nhỏ hơn hoặc bằng 3. Không cần dọn dẹp."
+          fi
+

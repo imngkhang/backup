@@ -1,0 +1,31 @@
+#!/bin/sh
+TARGET_SCRIPT="$HOME/.local/bin/dconf-restore"
+
+# 1. Tạo phần khung cố định cho file dconf-restore.sh
+cat << 'INNER_EOF' > "$TARGET_SCRIPT"
+#!/bin/bash
+# Chờ 3 giây để giao diện GNOME và extension Desktop Icons load xong
+sleep 3
+
+# Đổ ngược cấu hình dconf hệ thống vào tài khoản cá nhân
+if [ -f /etc/dconf/db/local.d/00-gnome-defaults ]; then
+    dconf load /org/gnome/ < /etc/dconf/db/local.d/00-gnome-defaults
+fi
+
+# Tự động khôi phục vị trí icon Desktop được nhúng sẵn dưới đây:
+INNER_EOF
+
+# 2. Quét tọa độ thực tế hiện tại và chèn trực tiếp vào đuôi file
+for file in "$HOME/Desktop"/*; do
+    # Bỏ qua nếu thư mục Desktop trống rỗng
+    [ -e "$file" ] || continue
+    
+    pos=$(gio info -a "metadata::ding-icon-position" "$file" 2>/dev/null | grep "metadata::ding-icon-position" | awk '{print $2}')
+    if [ ! -z "$pos" ]; then
+        filename=$(basename "$file")
+        echo "[ -e \"\$HOME/Desktop/$filename\" ] && gio set -t string \"\$HOME/Desktop/$filename\" \"metadata::ding-icon-position\" \"$pos\"" >> "$TARGET_SCRIPT"
+    fi
+done
+
+# 3. Đảm bảo file phục hồi luôn có quyền chạy
+chmod +x "$TARGET_SCRIPT"

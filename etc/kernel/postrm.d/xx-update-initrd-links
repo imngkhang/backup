@@ -1,0 +1,23 @@
+#!/bin/sh
+set -e
+
+# Chỉ chạy khi gỡ bỏ gói kernel (không phải khi nâng cấp)
+# DEB_MAINT_PARAMS sẽ chứa 'remove' hoặc 'purge'
+case "$DEB_MAINT_PARAMS" in
+    *remove*|*purge*)
+        version="$1"
+        image_path="$2"
+
+        # Nếu không có tham số, cố gắng lấy từ bản đang chạy
+        [ -n "$version" ] || version=$(uname -r)
+
+        # Gọi linux-update-symlinks với mode 'remove'
+        # Script Perl bạn gửi trước đó sẽ tự tính toán và trỏ vmlinuz sang bản cũ nhất còn lại
+        if [ -x /usr/sbin/linux-update-symlinks ]; then
+            /usr/sbin/linux-update-symlinks remove "$version" "$image_path"
+        fi
+        ;;
+esac
+
+exit 0
+

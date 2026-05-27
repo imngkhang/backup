@@ -1,0 +1,48 @@
+#!/bin/sh
+
+# Hàm thực hiện cập nhật 2 key Registry
+sync_wine() {
+    # Kiểm tra theme hiện tại
+
+    if [ "$XDG_CURRENT_DESKTOP" = "KDE" ]; then
+        if grep -iq "dark" "$HOME/.config/kdeglobals" 2>/dev/null; then VAL=0; else VAL=1; fi
+    else
+        [ "$(gsettings get org.gnome.desktop.interface color-scheme)" = "'prefer-dark'" ] && VAL=0 || VAL=1
+    fi
+
+    # Danh sách các Prefix
+    PATHS="$HOME/.wine $HOME/.local/share/wineprefixes $HOME/.var/app/com.usebottles.bottles/data/bottles/prefixes"
+
+    for p in $PATHS; do
+        if [ -d "$p" ] && [ -f "$p/user.reg" ]; then
+            # Cập nhật cả 2 key Apps và System
+            WINEDEBUG=-all WINEPREFIX="$p" wine reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v AppsUseLightTheme /t REG_DWORD /d $VAL /f >/dev/null 2>&1 &
+            WINEDEBUG=-all WINEPREFIX="$p" wine reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v SystemUsesLightTheme /t REG_DWORD /d $VAL /f >/dev/null 2>&1 &
+        fi
+    done
+}
+
+# 1. Chạy ngay một lần khi vừa khởi động daemon
+sync_wine
+
+# 2. Lắng nghe sự kiện từ GNOME (Vòng lặp này không tốn CPU khi đứng yên)
+if [ "$XDG_CURRENT_DESKTOP" = "KDE" ]; then
+    # Lắng nghe sự kiện đổi theme trên KDE Plasma bằng cách theo dõi file kdeglobals
+    if command -v inotifywait >/dev/null 2>&1; then
+        inotifywait -m -e modify "$HOME/.config/kdeglobals" | while read -r path action file; do
+            sync_wine
+        done
+    else
+        # Dự phòng nếu KDE chưa cài inotify-tools: Check định kỳ mỗi 10 giây
+        while true; do
+            sync_wine
+            sleep 10
+        done
+    fi
+else
+    # Lắng nghe sự kiện từ GNOME (Vòng lặp không tốn CPU)
+    gsettings monitor org.gnome.desktop.interface color-scheme | while read -r line; do
+        sync_wine
+    done
+fi
+
