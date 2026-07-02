@@ -1,0 +1,17 @@
+[Unit]
+Description=GDM Error Blocker Daemon
+# Đảm bảo môi trường người dùng đã sẵn sàng
+After=default.target
+
+[Service]
+# Đường dẫn tuyệt đối đến script
+ExecStart=/usr/local/bin/gdm-blocker
+# Chỉ khởi động lại nếu bị lỗi, chờ 5 giây để tránh lặp quá nhanh
+Restart=on-failure
+RestartSec=5s
+# Gỡ bỏ giới hạn nếu bạn muốn nó "lì lợm" tự hồi phục
+StartLimitIntervalSec=0
+
+[Install]
+# Chạy ngay khi user đăng nhập
+WantedBy=default.target

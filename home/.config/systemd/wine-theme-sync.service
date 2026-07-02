@@ -1,0 +1,9 @@
+[Unit]
+Description=Wine Auto Theme Sync
+
+[Service]
+ExecStart=/opt/wine-themes/wine-auto-sync
+Restart=always
+
+[Install]
+WantedBy=default.target

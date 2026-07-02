@@ -1,0 +1,10 @@
+[Unit]
+Description=Tu dong cap nhat vi tri icon vao file restore khi co thay doi
+After=gnome-session.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/dconf-auto-update-icons
+
+[Install]
+WantedBy=gnome-session.target

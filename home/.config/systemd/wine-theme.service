@@ -1,0 +1,14 @@
+[Unit]
+Description=Wine Dark Mode Sync Daemon
+After=graphical-session.target
+
+[Service]
+Type=simple
+# Đường dẫn tới file script của bạn
+ExecStart=/usr/local/bin/wine-theme-sync 
+# Luôn luôn khởi động lại
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=graphical-session.target

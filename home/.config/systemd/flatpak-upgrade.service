@@ -1,0 +1,6 @@
+[Unit]
+Description=Flatpak Automatic Update
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/flatpak update -y

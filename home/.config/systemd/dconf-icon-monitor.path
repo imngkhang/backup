@@ -1,0 +1,9 @@
+[Unit]
+Description=Theo doi bien dong thu muc Desktop de ghi lai toa do icon
+
+[Path]
+# Theo dõi mọi hành động chỉnh sửa, thêm, xóa file trong thư mục Desktop
+PathChanged=%h/Desktop
+
+[Install]
+WantedBy=gnome-session.target

@@ -1,0 +1,84 @@
+#!/bin/sh
+
+# Đảm bảo có thư mục home
+[ -z "$HOME" ] && HOME="/home/$(whoami)"
+
+PIDFILE="/tmp/wine-theme-sync.pid"
+if [ -f "$PIDFILE" ] && kill -0 $(cat "$PIDFILE") 2>/dev/null; then
+    exit 0
+fi
+echo $$ > "$PIDFILE"
+
+# 1. Tự động nhận diện Desktop Environment thông minh
+detect_de() {
+    if [ -n "$XDG_CURRENT_DESKTOP" ]; then
+        echo "$XDG_CURRENT_DESKTOP" | tr '[:lower:]' '[:upper:]'
+    elif [ -n "$KDE_FULL_SESSION" ] || [ -d "$HOME/.config/kdeglobals" ]; then
+        echo "KDE"
+    else
+        echo "GNOME"
+    fi
+}
+
+DE=$(detect_de)
+
+# Hàm kiểm tra theme hiện tại (Trả về VAL=0 là Tối, VAL=1 là Sáng)
+check_theme() {
+    case "$DE" in
+        *KDE*)
+            # Đọc mã màu RGB của nền cửa sổ trong kdeglobals
+            rgb=$(sed -n '/^\[Colors:Window\]/,/^\[/p' "$HOME/.config/kdeglobals" 2>/dev/null | grep "^BackgroundNormal=" | cut -d'=' -f2)
+            if [ -n "$rgb" ]; then
+                r=$(echo "$rgb" | cut -d',' -f1)
+                g=$(echo "$rgb" | cut -d',' -f2)
+                b=$(echo "$rgb" | cut -d',' -f3)
+                # Tổng RGB < 380 là Dark Mode
+                if [ "$((r + g + b))" -lt 380 ]; then echo 0; else echo 1; fi
+            else
+                echo 1
+            fi
+            ;;
+        *)
+            # Mặc định cho GNOME và các DE dùng gsettings
+            if gsettings get org.gnome.desktop.interface color-scheme 2>/dev/null | grep -q 'prefer-dark'; then
+                echo 0
+            else
+                echo 1
+            fi
+            ;;
+    esac
+}
+
+# Hàm thực hiện cập nhật Registry hàng loạt cho Wine
+sync_wine() {
+    VAL=$(check_theme)
+    PATHS="$HOME/.wine $HOME/.local/share/wineprefixes $HOME/.var/app/com.usebottles.bottles/data/bottles/prefixes"
+
+    for p in $PATHS; do
+        if [ -d "$p" ]; then
+            find "$p" -maxdepth 3 -name "user.reg" 2>/dev/null | while read -r reg_file; do
+                target_prefix=$(dirname "$reg_file")
+                # Chạy tuần tự để bảo vệ file khóa cấu hình Wine (.update-timestamp)
+                WINEDEBUG=-all WINEPREFIX="$target_prefix" wine reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v AppsUseLightTheme /t REG_DWORD /d $VAL /f >/dev/null 2>&1
+                WINEDEBUG=-all WINEPREFIX="$target_prefix" wine reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v SystemUsesLightTheme /t REG_DWORD /d $VAL /f >/dev/null 2>&1
+            done
+        fi
+    done
+}
+
+# 2. Đồng bộ ngay lập tức 1 lần khi daemon vừa khởi động
+sync_wine
+
+# 3. Vòng lặp Polling thông minh (Kiểm tra trạng thái sau mỗi 2 giây)
+LAST_VAL=$(check_theme)
+
+while true; do
+    sleep 2
+    CURRENT_VAL=$(check_theme)
+    # Nếu phát hiện trạng thái giao diện hiện tại khác với trạng thái trước đó
+    if [ "$CURRENT_VAL" != "$LAST_VAL" ]; then
+        sync_wine
+        LAST_VAL=$CURRENT_VAL
+    fi
+done
+
