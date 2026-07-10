@@ -1,0 +1,44 @@
+#!/bin/sh
+# Refresh UKI (kernelcache) and move files to /lib
+KVER="$1"
+if [ -f "/boot/kernel-$KVER" ]; then
+    VMLINUZ_LIB="/lib/kernels/kernel-$KVER"
+    VMLINUZ_BOOT="/boot/kernel-$KVER"
+    OUTPUT="/boot/kernelcache-$KVER"
+elif [ -f "/boot/vmlinux-$KVER" ]; then
+    VMLINUZ_LIB="/lib/kernels/vmlinux-$KVER"
+    VMLINUZ_BOOT="/boot/vmlinux-$KVER"
+    OUTPUT="/boot/vmlinuxc-$KVER"
+else
+    VMLINUZ_LIB="/lib/kernels/vmlinuz-$KVER"
+    VMLINUZ_BOOT="/boot/vmlinuz-$KVER"
+    OUTPUT="/boot/vmlinuzc-$KVER"
+if [ -f "/boot/initramfs-$KVER" ]; then
+    INITRD_BOOT="/boot/initramfs-$KVER"
+    INITRD_LIB="/lib/kernels/initramfs-$KVER"
+elif [ -f "/boot/initramfs-$KVER.img" ]; then
+    INITRD_BOOT="/boot/initramfs-$KVER.img"
+    INITRD_LIB="/lib/kernels/initramfs-$KVER.img"
+else
+    INITRD_BOOT="/boot/initrd.img-$KVER"
+    INITRD_LIB="/lib/kernels/initrd.img-$KVER"
+STUB="/usr/lib/systemd/boot/efi/linuxx64.efi.stub"
+
+# Find source kernel
+if [ -f "$VMLINUZ_LIB" ]; then
+    SRC_K="$VMLINUZ_LIB"
+elif [ -f "$VMLINUZ_BOOT" ]; then
+    SRC_K="$VMLINUZ_BOOT"
+else
+    exit 0
+fi
+
+# Build UKI
+/usr/lib/systemd/ukify build --linux="$SRC_K" --initrd="$INITRD_BOOT" --stub="$STUB" --uname="$KVER"  --output="$OUTPUT"
+
+# Verify and Move
+if [ -f "$OUTPUT" ]; then
+    chmod 600 "$OUTPUT"
+    [ -f "$VMLINUZ_BOOT" ] && mv -f "$VMLINUZ_BOOT" "$VMLINUZ_LIB"
+    [ -f "$INITRD_BOOT" ] && mv -f "$INITRD_BOOT" "$INITRD_LIB"
+fi

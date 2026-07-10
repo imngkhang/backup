@@ -1,0 +1,26 @@
+#!/bin/sh
+
+set -e
+
+# $1 is the kernel version passed by the system
+VERSION="$1"
+
+KEY="/var/lib/shim-signed/mok/MOK.key"
+CRT="/var/lib/shim-signed/mok/MOK.crt"
+
+
+for KERNEL_FILE in "/boot/kernel-$VERSION" "/boot/vmlinuz-$VERSION" "/boot/kernelcache-$VERSION" "/boot/vmlinux-$VERSION" "/boot/vmlinuzc-$VERSION" "/boot/vmlinuxc-$VERSION"; do
+    if [ -f "$KERNEL_FILE" ]; then
+        # Check if any signature table exists
+        if sbverify --list "$KERNEL_FILE" 2>&1 | grep -q "No signature table present"; then
+            echo "No signature detected for $KERNEL_FILE. Signing now..."
+            sbsign --key "$KEY" --cert "$CRT" --output "$KERNEL_FILE" "$KERNEL_FILE"
+            echo "$KERNEL_FILE has been signed."
+        else
+            echo "$KERNEL_FILE is already signed. Skipping."
+            
+            sbverify --list "$KERNEL_FILE"
+        fi
+    fi
+done
+

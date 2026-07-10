@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+
+  <mime-type type="application/x-linux-swap">
+    <comment>Linux swap file</comment>
+    <comment xml:lang="zh_TW">Linux 交換空間檔案</comment>
+    <comment xml:lang="zh_CN">Linux 交换文件</comment>
+    <comment xml:lang="vi">Tập tin hoán đổi Linux</comment>
+    <comment xml:lang="uk">Файл підкачки Linux</comment>
+    <comment xml:lang="tr">Linux takas dosyası</comment>
+    <comment xml:lang="sv">Linux växlingsfil</comment>
+    <comment xml:lang="sr">Линукс датотека размене</comment>
+    <comment xml:lang="sq">Skedar hapësirë shkëmbimi Linux</comment>
+    <comment xml:lang="sl">Izmenjalna datoteka Linux</comment>
+    <comment xml:lang="si">Linux හුවමාරු ගොනුව</comment>
+    <comment xml:lang="sk">Súbor odkladacieho priestoru Linux</comment>
+    <comment xml:lang="ru">Файл подкачки Linux</comment>
+    <comment xml:lang="ro">Fișier de swap Linux</comment>
+    <comment xml:lang="pt_BR">Arquivo de swap do Linux</comment>
+    <comment xml:lang="pt">Ficheiro de swap do Linux</comment>
+    <comment xml:lang="pl">Plik wymiany Linux</comment>
+    <comment xml:lang="oc">Fichièr d'esquipament Linux</comment>
+    <comment xml:lang="nn">Linux vekselfil</comment>
+    <comment xml:lang="nl">Linux wisselbestand</comment>
+    <comment xml:lang="nb">Linux vekselfil</comment>
+    <comment xml:lang="ms">Fail swap Linux</comment>
+    <comment xml:lang="lv">Linux maiņvietas fails</comment>
+    <comment xml:lang="lt">Linux sukeitimo failas</comment>
+    <comment xml:lang="ko">Linux 스왑 파일</comment>
+    <comment xml:lang="kk">Linux ауыстыру файлы</comment>
+    <comment xml:lang="ka">Linux-ის სვოპ ფაილი</comment>
+    <comment xml:lang="ja">Linux スワップファイル</comment>
+    <comment xml:lang="it">File di swap Linux</comment>
+    <comment xml:lang="is">Linux víxlskrá</comment>
+    <comment xml:lang="id">Berkas swap Linux</comment>
+    <comment xml:lang="ia">File de swap Linux</comment>
+    <comment xml:lang="hu">Linux lapozófájl</comment>
+    <comment xml:lang="hr">Linux datoteka razmjene</comment>
+    <comment xml:lang="he">קובץ החלפה của לינוקס</comment>
+    <comment xml:lang="gl">Ficheiro de espazo de intercambio Linux</comment>
+    <comment xml:lang="ga">Comhad babhtála Linux</comment>
+    <comment xml:lang="fur">File de swap Linux</comment>
+    <comment xml:lang="fr">Fichier d'échange Linux</comment>
+    <comment xml:lang="fo">Linux skiftifíla</comment>
+    <comment xml:lang="fi">Linux-sivutustiedosto</comment>
+    <comment xml:lang="eu">Linux truke-fitxategia</comment>
+    <comment xml:lang="es">Archivo de intercambio Linux</comment>
+    <comment xml:lang="eo">Rulmemora dosiero de Linukso</comment>
+    <comment xml:lang="en_GB">Linux swap file</comment>
+    <comment xml:lang="el">Αρχείο εναλλακτικής μνήμης Linux</comment>
+    <comment xml:lang="de">Linux-Auslagerungsdatei</comment>
+    <comment xml:lang="da">Linux-vekselfil</comment>
+    <comment xml:lang="cy">Ffeil gyfnewid Linux</comment>
+    <comment xml:lang="cs">Odkládací soubor Linux</comment>
+    <comment xml:lang="ca">Fitxer d'intercanvi Linux</comment>
+    <comment xml:lang="bg">Linux файлов суап</comment>
+    <comment xml:lang="be@latin">Fajł padpampovanki Linux</comment>
+    <comment xml:lang="be">Файл падпампоўкі Linux</comment>
+    <comment xml:lang="ast">Ficheru d'intercambiu Linux</comment>
+    <comment xml:lang="ar">ملف ذاكرة التبديل للينكس</comment>
+    <comment xml:lang="af">Linux-ruillêer</comment>
+    
+    <generic-icon name="application-x-firmware"/>
+    
+    <magic priority="80">
+      <match type="string" offset="4086" value="SWAPSPACE2"/>
+      <match type="string" offset="4086" value="SWAP-SPACE"/>
+      <match type="string" offset="65526" value="SWAPSPACE2"/>
+    </magic>
+    
+    <alias type="application/x-swap"/>
+  </mime-type>
+
+</mime-info>

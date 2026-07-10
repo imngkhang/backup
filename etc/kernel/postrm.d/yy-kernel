@@ -1,0 +1,25 @@
+#!/bin/sh
+# $1 is the kernel version being removed (e.g., 7.0.0-070000-generic)
+version="$1"
+
+if [ -n "$version" ]; then
+
+    # 1. Clean up /boot (Configs, Maps, and any leftovers)
+    rm -f "/boot/kernel-$version"
+    rm -f "/boot/vmlinuz-$version"
+    rm -f "/boot/initramfs-$version"
+    rm -f "/boot/initrd.img-$version"
+    rm -f "/boot/config-$version"
+    rm -f "/boot/System.map-$version"
+    
+    # 2. Clean up your UKI (The main kernelcache file)
+    rm -f "/boot/kernelcache-$version"
+
+    # 3. Clean up the ARCHIVED kernel in /lib
+    # (The initramfs in /lib is handled by the other script)
+    rm -f "/lib/kernels/kernel-$version"
+
+fi
+
+exit 0
+

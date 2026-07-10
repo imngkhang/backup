@@ -1,0 +1,58 @@
+#!/usr/bin/env python3
+import subprocess
+import os
+import sys
+
+# 1. Thiết lập hiển thị ( DISPLAY )
+os.environ["DISPLAY"] = ":1" 
+os.environ["XAUTHORITY"] = os.path.expanduser("~/.Xauthority")
+
+TPM_FILE = os.path.expanduser("~/.config/gnome-keyring.tpm12")
+UNLOCK_SCRIPT = os.path.expanduser("~/.local/bin/unlock.py")
+
+def run_cmd(cmd, input_str=None):
+    try:
+        proc = subprocess.run(cmd, shell=True, input=input_str, text=True, capture_output=True)
+        return proc.returncode, proc.stdout.strip(), proc.stderr.strip()
+    except Exception as e:
+        return 1, "", str(e)
+
+def ask_and_reseal(reason):
+    print(f"DEBUG: Triggered Zenity because: {reason}")
+    zen_cmd = f'zenity --password --title="TPM Update" --text="{reason}\nEnter password for {os.getlogin()}:"'
+    ret_z, new_pass, err_z = run_cmd(zen_cmd)
+    
+    if new_pass:
+        # THỰC HIỆN SEAL VÀ KIỂM TRA LỖI NGAY TẠI ĐÂY
+        ret_s, out_s, err_s = run_cmd(f"sudo -u tss /usr/bin/tpm_sealdata -z -p 7 -o {TPM_FILE}", input_str=new_pass)
+        
+        if ret_s != 0:
+            # Nếu Seal thất bại, hiện lỗi ra để sửa, không lặp lại Zenity nữa
+            subprocess.run(f'zenity --error --text="Lỗi Seal TPM: {err_s}\nUser tss có thể không có quyền ghi vào file."', shell=True)
+            sys.exit(1)
+            
+        run_cmd(UNLOCK_SCRIPT, input_str=new_pass)
+        print("Done. Re-sealed and unlocked.")
+    else:
+        sys.exit(0)
+
+# --- LOGIC CHÍNH ---
+if not os.path.exists(TPM_FILE):
+    ask_and_reseal("Initial setup.")
+    sys.exit(0)
+
+# Thử Unseal
+ret, out, err = run_cmd(f"sudo -u tss /usr/bin/tpm_unsealdata -z -i {TPM_FILE}")
+
+# Nếu TPM báo lỗi (Unlock denied)
+if "denied" in (out + err).lower() or not out:
+    ask_and_reseal("PCR change detected.")
+else:
+    # Nếu TPM ra pass, thử unlock keyring
+    ret_un, out_un, err_un = run_cmd(UNLOCK_SCRIPT, input_str=out)
+    if "denied" in (out_un + err_un).lower():
+        # Nếu mật khẩu lấy ra KHÔNG khớp keyring
+        ask_and_reseal("Password mismatch.")
+    else:
+        print("Success!")
+

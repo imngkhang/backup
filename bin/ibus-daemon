@@ -1,0 +1,3 @@
+#!/bin/sh
+# Chỉ chạy fcitx5 nếu UID là người dùng bình thường (thường từ 1000 trở lên)
+exec /usr/bin/fcitx5 -d --replace > /dev/null 2>&1

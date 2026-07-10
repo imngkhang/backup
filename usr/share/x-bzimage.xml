@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="application/x-bzimage">
+    <comment>Linux kernel boot executable (bzImage)</comment>
+    <comment xml:lang="zh_TW">Linux 核心開機可執行檔 (bzImage)</comment>
+    <comment xml:lang="zh_CN">Linux 内核引导可执行文件 (bzImage)</comment>
+    <comment xml:lang="vi">Tập tin thực thi khởi động hạt nhân Linux (bzImage)</comment>
+    <comment xml:lang="uk">Виконуваний файл завантаження ядра Linux (bzImage)</comment>
+    <comment xml:lang="tr">Linux çekirdek önyükleme yürütülebilir dosyası (bzImage)</comment>
+    <comment xml:lang="sv">Körbar Linux-kernelbootfil (bzImage)</comment>
+    <comment xml:lang="sr">Извршна датотека покретања Линукс језгра (bzImage)</comment>
+    <comment xml:lang="sq">Skedar i ekzekutueshëm i nisjes së kernelit Linux (bzImage)</comment>
+    <comment xml:lang="sl">Izvedljiva datoteka zagona jedra Linux (bzImage)</comment>
+    <comment xml:lang="si">Linux கර්නල් ඇರඹුම් ක්‍රියාත්මක කළ හැකි ගොනුව (bzImage)</comment>
+    <comment xml:lang="sk">Spustiteľný súbor zavádzania jadra Linux (bzImage)</comment>
+    <comment xml:lang="ru">Исполняемый файл загрузки ядра Linux (bzImage)</comment>
+    <comment xml:lang="ro">Fișier executabil de boot al kernelului Linux (bzImage)</comment>
+    <comment xml:lang="pt_BR">Executável di inicializzazione do kernel Linux (bzImage)</comment>
+    <comment xml:lang="pt">Executável de inicializzazione do kernel Linux (bzImage)</comment>
+    <comment xml:lang="pl">Plik wykonywalny rozruchu jądra Linux (bzImage)</comment>
+    <comment xml:lang="oc">Fichièr executable d'aviada del nuclèu Linux (bzImage)</comment>
+    <comment xml:lang="nn">Køyrbar fil for oppstart av Linux-kjerne (bzImage)</comment>
+    <comment xml:lang="nl">Uitvoerbaar bestand voor Linux-kernelboot (bzImage)</comment>
+    <comment xml:lang="nb">Kjørbar fil for oppstart av Linux-kjerne (bzImage)</comment>
+    <comment xml:lang="ms">Fail boleh laksana but kernel Linux (bzImage)</comment>
+    <comment xml:lang="lv">Linux kodola sāknēšanas izpildāmais fails (bzImage)</comment>
+    <comment xml:lang="lt">Linux branduolio paleidimo vykdomasis failas (bzImage)</comment>
+    <comment xml:lang="ko">Linux 커널 부트 실행 파일 (bzImage)</comment>
+    <comment xml:lang="kk">Linux ядросын жүктеудің орындалатын файлы (bzImage)</comment>
+    <comment xml:lang="ka">Linux-ის ბირთვის ჩატვიрთვის გამშვები ფαილი (bzImage)</comment>
+    <comment xml:lang="ja">Linux カーネルブート実行可能ファイル (bzImage)</comment>
+    <comment xml:lang="it">Eseguibile di boot del kernel Linux (bzImage)</comment>
+    <comment xml:lang="is">Ræsanleg skrá Linux-kjarna (bzImage)</comment>
+    <comment xml:lang="id">Berkas eksekutif boot kernel Linux (bzImage)</comment>
+    <comment xml:lang="ia">Executable de boot del kernel Linux (bzImage)</comment>
+    <comment xml:lang="hu">Linux kernelszintű indítható végrehajtható fájl (bzImage)</comment>
+    <comment xml:lang="hr">Izvršna datoteka pokretanja Linux jezgre (bzImage)</comment>
+    <comment xml:lang="he">קобץ הפעله của אתחول ליבת לינוקס (bzImage)</comment>
+    <comment xml:lang="gl">Executábel de arranque do núcleo Linux (bzImage)</comment>
+    <comment xml:lang="ga">Comhad inrite bootáil eithne Linux (bzImage)</comment>
+    <comment xml:lang="fur">Eseguibil di boot dal kernel Linux (bzImage)</comment>
+    <comment xml:lang="fr">Exécutable d'amorçage du noyau Linux (bzImage)</comment>
+    <comment xml:lang="fo">Linux kerna ræsandi fíla (bzImage)</comment>
+    <comment xml:lang="fi">Linux-ytimen käynnistyksen suoritettava tiedosto (bzImage)</comment>
+    <comment xml:lang="eu">Linux nukleoaren abiarazteko fitxategi exekutagarria (bzImage)</comment>
+    <comment xml:lang="es">Executable de arranque del kernel Linux (bzImage)</comment>
+    <comment xml:lang="eo">Rullebla dosiero por praŝargi Linuks-kernon (bzImage)</comment>
+    <comment xml:lang="en_GB">Linux kernel boot executable (bzImage)</comment>
+    <comment xml:lang="el">Εκτελέσιμο αρχείο εκκίνησης πυρήνα Linux (bzImage)</comment>
+    <comment xml:lang="de">Ausführbare Linux-Kernel-Bootdatei (bzImage)</comment>
+    <comment xml:lang="da">Eksekverbar Linux-kernelbootfil (bzImage)</comment>
+    <comment xml:lang="cy">Ffeil gweithredadwy cychwyn cnewyllyn Linux (bzImage)</comment>
+    <comment xml:lang="cs">Spustitelný soubor zavedení jádra Linux (bzImage)</comment>
+    <comment xml:lang="ca">Executable d'arrencada del nucli Linux (bzImage)</comment>
+    <comment xml:lang="bg">Изпълним файл за зареждане на ядрото на Linux (bzImage)</comment>
+    <comment xml:lang="be@latin">Vykanatny fajł zapusku jadra Linux (bzImage)</comment>
+    <comment xml:lang="be">Выканальны файл загрузкі ядра Linux (bzImage)</comment>
+    <comment xml:lang="ast">Executable d'arranque del kernel Linux (bzImage)</comment>
+    <comment xml:lang="ar">ملف تشغيل إقلاع نواة لينكس (bzImage)</comment>
+    <comment xml:lang="af">Linux-kernselflaai-uitvoerbare lêer (bzImage)</comment>
+    <acronym>bzImage</acronym>
+    <expanded-acronym>Big zImage Linux kernel boot image</expanded-acronym>
+    <generic-icon name="application-x-executable"/>
+    
+    <sub-class-of type="application/x-executable"/>
+
+    <magic priority="80">
+      <match type="string" offset="514" value="HdrS"/>
+    </magic>
+
+    <alias type="application/x-bzimage"/>
+    <alias type="application/x-vmlinuz"/>
+  </mime-type>
+
+  <mime-type type="application/x-efi-bzimage">
+    <comment>Linux kernel boot executable with EFI stub (bzImage)</comment>
+    <comment xml:lang="zh_TW">Linux 核心開機可執行檔 (含 EFI 存根) (bzImage)</comment>
+    <comment xml:lang="zh_CN">Linux 内核引导可执行文件 (含 EFI 存根) (bzImage)</comment>
+    <comment xml:lang="vi">Tập tin thực thi khởi động hạt nhân Linux với mã mồi EFI (bzImage)</comment>
+    <comment xml:lang="uk">Виконуваний файл завантаження ядра Linux з EFI stub (bzImage)</comment>
+    <comment xml:lang="tr">EFI stub içeren Linux çekirdek önyükleme yürütülebilir dosyası (bzImage)</comment>
+    <comment xml:lang="sv">Körbar Linux-kernelbootfil med EFI-stub (bzImage)</comment>
+    <comment xml:lang="sr">Извршна датотека покретања Линукс језгра са ЕФИ стубом (bzImage)</comment>
+    <comment xml:lang="sq">Skedar i ekzekutueshëm i nisjes së kernelit Linux me EFI stub (bzImage)</comment>
+    <comment xml:lang="sl">Izvedljiva datoteka zagona jedra Linux z EFI stub (bzImage)</comment>
+    <comment xml:lang="si">EFI stub සහිත Linux கර්නල් ඇරඹuම් ක්‍රියාත්මක කළ හැකි ගොნුව (bzImage)</comment>
+    <comment xml:lang="sk">Spustiteľný súbor zavádzania jadra Linux s EFI stub (bzImage)</comment>
+    <comment xml:lang="ru">Исполняемый файл загрузки ядра Linux с EFI stub (bzImage)</comment>
+    <comment xml:lang="ro">Fișier executabil de boot al kernelului Linux cu EFI stub (bzImage)</comment>
+    <comment xml:lang="pt_BR">Executável di inicializzazione do kernel Linux com EFI stub (bzImage)</comment>
+    <comment xml:lang="pt">Executável de inicializzazione do kernel Linux com EFI stub (bzImage)</comment>
+    <comment xml:lang="pl">Plik wykonywalny rozruchu jądra Linux z EFI stub (bzImage)</comment>
+    <comment xml:lang="oc">Fichièr executable d'aviada del nuclèu Linux amb EFI stub (bzImage)</comment>
+    <comment xml:lang="nn">Køyrbar fil for oppstart av Linux-kjerne med EFI-stub (bzImage)</comment>
+    <comment xml:lang="nl">Uitvoerbaar bestand voor Linux-kernelboot met EFI-stub (bzImage)</comment>
+    <comment xml:lang="nb">Kjørbar fil for oppstart av Linux-kjerne med EFI-stub (bzImage)</comment>
+    <comment xml:lang="ms">Fail boleh laksana but kernel Linux dengan EFI stub (bzImage)</comment>
+    <comment xml:lang="lv">Linux kodola sāknēšanas izpildāmais fails ar EFI stub (bzImage)</comment>
+    <comment xml:lang="lt">Linux branduolio paleidimo vykdomasis failas su EFI stub (bzImage)</comment>
+    <comment xml:lang="ko">EFI stub가 포함된 Linux 커널 부트 실행 파일 (bzImage)</comment>
+    <comment xml:lang="kk">EFI stub бар Linux ядросын жүктеудің орындалатын файлы (bzImage)</comment>
+    <comment xml:lang="ka">Linux-ის ბირთვის ჩატვირთვის გამშვები ფαილი EFI stub-ით (bzImage)</comment>
+    <comment xml:lang="ja">EFI スタブ付き Linux カーネルブート実行可能ファイル (bzImage)</comment>
+    <comment xml:lang="it">Eseguibile di boot del kernel Linux con EFI stub (bzImage)</comment>
+    <comment xml:lang="is">Ræsanleg skrá Linux-kjarna með EFI stub (bzImage)</comment>
+    <comment xml:lang="id">Berkas eksekutif boot kernel Linux dengan EFI stub (bzImage)</comment>
+    <comment xml:lang="ia">Executable de boot del kernel Linux con EFI stub (bzImage)</comment>
+    <comment xml:lang="hu">Linux kernelszintű indítható végrehajtható fájl EFI stub-bal (bzImage)</comment>
+    <comment xml:lang="hr">Izvršna datoteka pokretanja Linux jezgre s EFI stubom (bzImage)</comment>
+    <comment xml:lang="he">(bzImage) עם רכיב EFI stub קобץ הפעלה של אתחול ליבת לינוקס</comment>
+    <comment xml:lang="gl">Executábel de arranque do núcleo Linux con EFI stub (bzImage)</comment>
+    <comment xml:lang="ga">Comhad inrite bootáil eithne Linux le EFI stub (bzImage)</comment>
+    <comment xml:lang="fur">Eseguibil di boot dal kernel Linux con EFI stub (bzImage)</comment>
+    <comment xml:lang="fr">Exécutable d'amorçage du noyau Linux avec EFI stub (bzImage)</comment>
+    <comment xml:lang="fo">Linux kerna ræsandi fíla við EFI stub (bzImage)</comment>
+    <comment xml:lang="fi">Linux-ytimen käynnistyksen suoritettava tiedosto EFI-stubilla (bzImage)</comment>
+    <comment xml:lang="eu">Linux nukleoaren abiarazteko fitxategi exekutagarria EFI stub-ekin (bzImage)</comment>
+    <comment xml:lang="es">Executable de arranque del kernel Linux con EFI stub (bzImage)</comment>
+    <comment xml:lang="eo">Rullebla dosiero por praŝargi Linuks-kernon kun EFI-stub (bzImage)</comment>
+    <comment xml:lang="en_GB">Linux kernel boot executable with EFI stub (bzImage)</comment>
+    <comment xml:lang="el">Εκτελέσιμο αρχείο εκκίνησης πυρήνα Linux με EFI stub (bzImage)</comment>
+    <comment xml:lang="de">Ausführbare Linux-Kernel-Bootdatei mit EFI-stub (bzImage)</comment>
+    <comment xml:lang="da">Eksekverbar Linux-kernelbootfil med EFI-stub (bzImage)</comment>
+    <comment xml:lang="cy">Ffeil gweithredadwy cychwyn cnewyllyn Linux gydag EFI stub (bzImage)</comment>
+    <comment xml:lang="cs">Spustitelný soubor zavedení jádra Linux s EFI stub (bzImage)</comment>
+    <comment xml:lang="ca">Executable d'arrencada del nucli Linux amb EFI stub (bzImage)</comment>
+    <comment xml:lang="bg">Изпълним файл за зареждане на ядрото на Linux с EFI stub (bzImage)</comment>
+    <comment xml:lang="be@latin">Vykanatny fajł zapusku jadra Linux z EFI stub (bzImage)</comment>
+    <comment xml:lang="be">Виканальны файл загрузкі ядра Linux з EFI stub (bzImage)</comment>
+    <comment xml:lang="ast">Executable d'arranque del kernel Linux con EFI stub (bzImage)</comment>
+    <comment xml:lang="ar">ملف تشغيل إقلاع نواة لينكس مع مồi EFI (bzImage)</comment>
+    <comment xml:lang="af">Linux-kernselflaai-uitvoerbare lêer med EFI-stub (bzImage)</comment>
+    <acronym>bzImage</acronym>
+    <expanded-acronym>Big zImage Linux kernel boot image with EFISTUB</expanded-acronym>
+    
+    <generic-icon name="application-x-ms-dos-executable"/>
+    <sub-class-of type="application/x-executable"/>
+   
+    <magic priority="100">
+      <match type="string" offset="0" value="MZ">
+        <match type="string" offset="514" value="HdrS"/>
+      </match>
+    </magic>
+  </mime-type>
+</mime-info>
