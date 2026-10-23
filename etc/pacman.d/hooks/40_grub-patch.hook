@@ -1,0 +1,10 @@
+[Trigger]
+Operation = Upgrade
+Operation = Install
+Type = Package
+Target = grub
+
+[Action]
+Description = Patching 10_linux to remove Loading Linux and Loading initial ramdisk messages...
+When = PostTransaction
+Exec = /bin/grub-patcher
