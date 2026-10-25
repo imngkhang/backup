@@ -1,0 +1,496 @@
+#! /bin/bash
+
+set -euo pipefail
+
+arch=`uname -m`
+rootdir=
+bootdir=
+efidir=
+install_device=
+efibootdir=
+no_nvram=no
+removable=no
+clean=no
+sysconfdir="/etc"
+libdir="/usr/lib"
+datadir="/usr/share"
+source_dir="${datadir}/efi/${arch}"
+efibootmgr="/usr/sbin/efibootmgr"
+shim_signed_dir="/usr/share/shim-signed"
+grub_probe="/usr/bin/grub-probe"
+grub_mkrelpath="/usr/bin/grub-mkrelpath"
+no_grub_install=no
+grub_install="/usr/bin/grub-mkstandalone"
+grub_install_target=
+grub_sbat_opt="--sbat /usr/share/grub/sbat.csv"
+grub_extra_args=""
+self="`basename $0`"
+grub_cfg="/boot/grub/grub.cfg"
+update_boot=no
+def_grub_efi="${source_dir}/grubx64.efi"
+def_boot_efi=
+fonts="unicode"
+sbsign_key="/etc/secureboot/keys/MOK.key"
+sbsign_cert="/etc/secureboot/keys/MOK.crt"
+skip_sbsign=no
+
+if [ x${arch} = xx86_64 ] ; then
+	grub_install_target="x86_64-efi"
+	def_boot_efi="BOOTX64.EFI"
+	efi_arch_lower="x64"
+    platform="x86_64-efi"
+elif [ x${arch} = xaarch64 ] ; then
+	grub_install_target="arm64-efi"
+	def_boot_efi="BOOTAA64.EFI"
+	efi_arch_lower="aa64"
+    platform="arm64-efi"
+else
+    platform="unknown"
+	echo "Unsupported architecture: ${arch}"
+	exit 1
+fi
+
+def_shim_efi="shim${efi_arch_lower}.efi"
+def_mm_efi="mm${efi_arch_lower}.efi"
+
+if [ -z "$def_shim_efi" -o ! -e ${source_dir}/${def_shim_efi} ] ; then
+	def_shim_efi="shimx64.efi"
+fi
+
+if [ ! -d "${source_dir}" -o ! -e "${def_grub_efi}" ] ; then
+    source_dir="$libdir/grub/$grub_install_target"
+    def_grub_efi="${source_dir}/grubx64.efi"
+fi
+ 
+# Get GRUB_DISTRIBUTOR.
+if test -f "${sysconfdir}/default/grub" ; then
+    . "${sysconfdir}/default/grub"
+fi
+
+if [ x"${GRUB_DISTRIBUTOR}" = x ] && [ -f "${sysconfdir}/os-release" ] ; then
+    . "${sysconfdir}/os-release"
+    GRUB_DISTRIBUTOR="${NAME}"
+    OS_ID="${ID}"
+fi
+
+bootloader_id="$(echo "$GRUB_DISTRIBUTOR" | tr 'A-Z' 'a-z' | cut -d' ' -f1)"
+if test -z "$bootloader_id"; then
+    bootloader_id=GRUB
+fi
+
+efi_distributor="$bootloader_id"
+
+CD_MODULES="
+	boot
+	btrfs
+    bli
+	cat
+	chain
+	configfile
+	echo
+	efi_gop
+	efifwsetup
+	efinet
+	ext2
+	fat
+	font
+	gettext
+	gfxmenu
+	gfxterm
+	gfxterm_background
+	gzio
+	halt
+	help
+	hfsplus
+	iso9660
+	jpeg
+	keystatus
+	loadenv
+	loopback
+	linux
+	ls
+	lsefi
+	lsefimmap
+	lsefisystab
+	lssal
+	memdisk
+	minicmd
+	normal
+	part_apple
+	part_msdos
+	part_gpt
+	password_pbkdf2
+	png
+	probe
+	reboot
+	regexp
+	search
+	search_fs_uuid
+	search_fs_file
+	search_label
+	serial
+	sleep
+	smbios
+	squash4
+	test
+	tpm
+	true
+	video
+	xfs
+	zfs
+	zfscrypt
+	zfsinfo
+	"
+
+# Platform-specific modules
+case $platform in
+    x86_64-efi|i386-efi)
+	CD_MODULES="$CD_MODULES
+	cpuid
+	play
+	"
+	;;
+    arm64-efi)
+	CD_MODULES="$CD_MODULES
+	fdt
+	"
+	;;
+esac
+
+GRUB_MODULES="$CD_MODULES
+	cryptodisk
+	gcry_arcfour
+	gcry_blowfish
+	gcry_camellia
+	gcry_cast5
+	gcry_crc
+	gcry_des
+	gcry_dsa
+	gcry_idea
+	gcry_md4
+	gcry_md5
+	gcry_rfc2268
+	gcry_rijndael
+	gcry_rmd160
+	gcry_rsa
+	gcry_seed
+	gcry_serpent
+	gcry_sha1
+	gcry_sha256
+	gcry_sha512
+	gcry_tiger
+	gcry_twofish
+	gcry_whirlpool
+	luks
+	lvm
+	mdraid09
+	mdraid1x
+	raid5rec
+	raid6rec
+	"
+NET_MODULES="$CD_MODULES
+	http
+	tftp
+	"
+
+usage () {
+    echo "Usage: $self [OPTION]... [INSTALL_DEVICE]"
+    echo
+    echo "Install Secure Boot Loaders on your drive."
+    echo
+    echo "--directory=DIR use images from DIR"
+	echo "--fonts=FONTS install FONTS [default=unicode]"
+    echo "--grub-probe=FILE use FILE as grub-probe."
+    echo "--removable the installation device is removable"
+    echo "--no-nvram don't update the NVRAM variable"
+    echo "--bootloader-id=ID the ID of bootloader"
+    echo "--efi-directory=DIR use DIR as the EFI System Partition root"
+    echo "--modules=MODULES pre-load specified modules MODULES."
+    echo "--config-file=FILE use FILE as config file, default is $grub_cfg"
+    echo "--sbat=FILE use FILE for SBAT data"
+    echo "--clean remove all installed files and configs"
+    echo "--no-grub-install Do not run grub-install"
+	echo "--sbsign-key=FILE use FILE as private key for signing (default $sbsign_key)."
+    echo "--sbsign-cert=FILE use FILE as certificate for signing (default $sbsign_cert)."
+    echo "--no-sbsign do not sign the GRUB binary."
+    echo
+    echo "INSTALL_DEVICE must be system device filename."
+}
+
+argument () {
+  opt="$1"
+  shift
+
+  if test $# -eq 0; then
+      echo "$0: option requires an argument -- \`$opt'" 1>&2
+      exit 1
+  fi
+  echo "$1"
+}
+
+# Check the arguments.
+while test $# -gt 0
+do
+    option=$1
+    shift
+
+    case "$option" in
+    -h | --help)
+	usage
+	exit 0 ;;
+
+    --root-directory)
+	rootdir="`argument $option "$@"`"; shift;;
+    --root-directory=*)
+	rootdir="`echo "$option" | sed 's/--root-directory=//'`" ;;
+
+    --efi-directory)
+	efidir="`argument $option "$@"`"; shift;;
+    --efi-directory=*)
+	efidir="`echo "$option" | sed 's/--efi-directory=//'`" ;;
+
+    --directory | -d)
+	source_dir="`argument $option "$@"`"; shift;;
+    --directory=*)
+	source_dir="`echo "$option" | sed 's/--directory=//'`" ;;
+
+	--fonts)
+	fonts="`argument "$option" "$@"`"; shift;;
+    --fonts=*)
+	fonts="`echo "$option" | sed 's/--fonts=//'`" ;;
+
+    --bootloader-id)
+	bootloader_id="`argument $option "$@"`"; shift;;
+    --bootloader-id=*)
+	bootloader_id="`echo "$option" | sed 's/--bootloader-id=//'`" ;;
+
+    --grub-probe)
+	grub_probe="`argument "$option" "$@"`"; shift;;
+    --grub-probe=*)
+	grub_probe="`echo "$option" | sed 's/--grub-probe=//'`" ;;
+
+    --config-file)
+	grub_cfg="`argument "$option" "$@"`"; shift;;
+    --config-file=*)
+	grub_cfg="`echo "$option" | sed 's/--config-file=//'`" ;;
+
+    --modules)
+	GRUB_MODULES="`argument "$option" "$@"`"; shift;;
+    --modules=*)
+	GRUB_MODULES="`echo "$option" | sed 's/--modules=//'`" ;;
+
+    --sbat)
+	grub_sbat_opt="--sbat `argument "$option" "$@"`"; shift;;
+    --sbat=*)
+	grub_sbat_opt="$option" ;;
+
+    --removable)
+	no_nvram=yes
+	removable=yes ;;
+
+    --no-nvram)
+	no_nvram=yes ;;
+
+    --clean)
+	clean=yes ;;
+
+    --no-grub-install)
+	no_grub_install=yes ;;
+
+	--sbsign-key)
+	sbsign_key="`argument "$option" "$@"`"; shift;;
+    --sbsign-key=*)
+	sbsign_key="`echo "$option" | sed 's/--sbsign-key=//'`" ;;
+
+    --sbsign-cert)
+	sbsign_cert="`argument "$option" "$@"`"; shift;;
+    --sbsign-cert=*)
+	sbsign_cert="`echo "$option" | sed 's/--sbsign-cert=//'`" ;;
+
+    --no-sbsign)
+	skip_sbsign=yes ;;
+
+    -*)
+	echo "Unrecognized option \`$option'"  1>&2
+	usage
+	exit 1
+	;;
+    *)
+	if test "x$install_device" != x; then
+	    echo "More than one install device?" 1>&2
+	    usage
+	    exit 1
+	fi
+	install_device="${option}" ;;
+    esac
+done
+
+# Set default esp as /boot/efi unless --efi-directory is specified. 
+if test -z "$efidir"; then
+    efidir="/boot/efi"
+fi
+
+if test -n "$efidir"; then
+    efi_fs=`"$grub_probe" --target=fs "${efidir}" 2>/dev/null || echo "fat"`
+    if test "x$efi_fs" = xfat; then :; else
+	echo "$efidir doesn't look like an EFI partition." 1>&2
+    fi
+    install_device="`"$grub_probe" --target=device --device-map= "${efidir}" 2>/dev/null || true`"
+fi
+
+if test -n "$efidir"; then
+    efi_file="$def_shim_efi"
+    if test "$removable" = "yes" ; then
+      efibootdir="$efidir/EFI/BOOT"
+      mkdir -p "$efibootdir" || exit 1
+      efidir="$efibootdir"
+    else
+      efidir="$efidir/EFI/$efi_distributor"
+      mkdir -p "$efidir" || exit 1
+    fi
+else
+    echo "No valid EFI partition" 1>&2
+    exit 1;
+fi
+
+if test "$removable" = "no" -a -f "$efibootdir/$def_boot_efi"; then
+    update_boot=yes
+else
+    update_boot=yes
+fi
+
+if test "$clean" = "yes"; then
+    rm -f "${efidir}/${def_shim_efi}"
+    rm -f "${efidir}/${def_mm_efi}"
+    rm -f "${efidir}/grub${efi_arch_lower}.efi"
+    if test "$update_boot" = "yes"; then
+        rm -f "${efibootdir}/${def_boot_efi}"
+        rm -f "${efibootdir}/${def_mm_efi}"
+    fi
+    if test "$no_nvram" = no && test -n "$bootloader_id"; then
+        # Delete old entries from the same distributor.
+        for bootnum in `$efibootmgr | grep '^Boot[0-9]' | \
+            grep -F -i " $bootloader_id" | cut -b5-8`; do
+            $efibootmgr -b "$bootnum" -B > /dev/null 2>&1
+        done
+	fi
+	exit 0
+fi
+
+make_grubcfg () {
+grub_cfg_dirname=`dirname $grub_cfg`
+grub_cfg_basename=`basename $grub_cfg`
+cfg_fs_uuid=`"$grub_probe" --target=fs_uuid "$grub_cfg_dirname"`
+
+GRUB_FS="$(stat -f -c %T / || echo unknown)"
+
+if [ "x${GRUB_FS}" = "xbtrfs" ] ; then
+cat <<EOF
+set btrfs_relative_path="yes"
+EOF
+if ${grub_mkrelpath} --usage | grep -q -e '--relative'; then
+  grub_mkrelpath="${grub_mkrelpath} -r"
+fi
+fi
+
+hints="`"${grub_probe}" --target=hints_string "$grub_cfg_dirname" 2> /dev/null`"
+
+if [ "x$hints" != x ]; then
+  echo "if [ x\$feature_platform_search_hint = xy ]; then"
+  echo "  search --no-floppy --fs-uuid --set=root ${hints} ${cfg_fs_uuid}"
+  echo "else"
+  echo "  search --no-floppy --fs-uuid --set=root ${cfg_fs_uuid}"
+  echo "fi"
+else
+  echo "search --no-floppy --fs-uuid --set=root ${cfg_fs_uuid}"
+fi
+
+cat <<EOF
+set prefix=(\${root})`${grub_mkrelpath} ${grub_cfg_dirname}`
+source "\${prefix}/${grub_cfg_basename}"
+EOF
+}
+
+# Making sure grub.cfg not overwritten by grub-install above 
+
+# invoke grub-install with extra arguments if any
+if test "$no_grub_install" != "yes"; then
+  if test "$removable" = "yes"; then
+    ${grub_install} --format=${grub_install_target} --fonts="${fonts}" --modules="${GRUB_MODULES}" ${grub_sbat_opt} --output="${efibootdir}/grub${efi_arch_lower}.efi" /boot/grub/grub.cfg="${grub_cfg}"
+  else
+    ${grub_install} --format=${grub_install_target} --fonts="${fonts}" --modules="${GRUB_MODULES}" ${grub_sbat_opt} --output="${efidir}/grub${efi_arch_lower}.efi" /boot/grub/grub.cfg="${grub_cfg}"
+  fi
+fi
+
+# Specify the source shim and mm files to copy to the efidir and efibootdir
+source_shim_efi=""
+if [ -f "${shim_signed_dir}/${def_shim_efi}" ]; then
+    source_shim_efi="${shim_signed_dir}/${def_shim_efi}"
+fi
+
+source_mm_efi=""
+if [ -f "${shim_signed_dir}/${def_mm_efi}" ]; then
+    source_mm_efi="${shim_signed_dir}/${def_mm_efi}"
+fi
+
+# Copy the MokManager file
+if [ -n "$source_mm_efi" ] && [ -f "$source_mm_efi" ]; then
+    cp "$source_mm_efi" "${efidir}/${def_mm_efi}"
+fi
+
+# Now we will copy shim and grub efi files to the appropriate locations
+if test "$removable" = "yes"; then
+    # If removable, copy shim to BOOT{ARCH}.EFI
+    if [ -n "$source_shim_efi" ] && [ -f "$source_shim_efi" ]; then
+        cp "$source_shim_efi" "${efibootdir}/${def_boot_efi}"
+    fi
+else
+    # If not removable
+    if [ -n "$source_shim_efi" ] && [ -f "$source_shim_efi" ]; then
+        cp "$source_shim_efi" "${efidir}/${def_shim_efi}"
+    fi
+fi
+
+# If sbsign is not skipped, sign the grub efi file with sbsign
+
+if test "$skip_sbsign" = "no"; then
+    if command -v sbsign >/dev/null 2>&1; then
+        # Locate the grub efi file location
+        if test "$removable" = "yes"; then
+            target_grub_efi="${efibootdir}/grub${efi_arch_lower}.efi"
+        else
+            target_grub_efi="${efidir}/grub${efi_arch_lower}.efi"
+        fi
+
+        if test -f "$target_grub_efi"; then
+            if test -f "$sbsign_key" && test -f "$sbsign_cert"; then
+                sbsign --key "$sbsign_key" --cert "$sbsign_cert" --output "$target_grub_efi" "$target_grub_efi" > /dev/null 2>&1
+            else
+                echo "Warning: keys not found at $sbsign_key or $sbsign_cert, skipping signing." >&2
+            fi
+        fi
+    else
+        echo "Warning: 'sbsign' command not found, skipping signing." >&2
+    fi
+fi
+
+if test "$no_nvram" = no && test -n "$bootloader_id"; then
+    modprobe -q efivars 2>/dev/null || true
+
+    # Delete old entries from the same distributor.
+    for bootnum in `$efibootmgr | grep '^Boot[0-9]' | \
+        grep -F -i " $bootloader_id" | cut -b5-8`; do
+        $efibootmgr -b "$bootnum" -B > /dev/null 2>&1
+    done
+
+    efidir_drive="$("$grub_probe" --target=drive --device-map= "$efidir" 2>/dev/null || true)"
+    efidir_disk="$("$grub_probe" --target=disk --device-map= "$efidir" 2>/dev/null || true)"
+    if test -z "$efidir_drive" || test -z "$efidir_disk"; then
+        echo "Can't find GRUB drive for $efidir; unable to create EFI Boot Manager entry." >&2
+    else
+        efidir_part="$(echo "$efidir_drive" | sed 's/^([^,]*,[^0-9]*//; s/[^0-9].*//')"
+        # create boot entry for default shim
+        $efibootmgr -c -d "$efidir_disk" -p "$efidir_part" -w \
+          -L "$bootloader_id" -l "\\EFI\\$efi_distributor\\$efi_file" > /dev/null 2>&1
+    fi
+fi
