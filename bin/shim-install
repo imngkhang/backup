@@ -50,6 +50,8 @@ else
 	exit 1
 fi
 
+echo "Installing for ${platform} platform."
+
 def_shim_efi="shim${efi_arch_lower}.efi"
 def_mm_efi="mm${efi_arch_lower}.efi"
 
@@ -362,6 +364,7 @@ fi
 if test "$clean" = "yes"; then
     rm -f "${efidir}/${def_shim_efi}"
     rm -f "${efidir}/${def_mm_efi}"
+    rm -f "${efidir}/grub.cfg"
     rm -f "${efidir}/grub${efi_arch_lower}.efi"
     if test "$update_boot" = "yes"; then
         rm -f "${efibootdir}/${def_boot_efi}"
@@ -406,19 +409,19 @@ else
 fi
 
 cat <<EOF
-set prefix=(\${root})`${grub_mkrelpath} ${grub_cfg_dirname}`
-source "\${prefix}/${grub_cfg_basename}"
+source "$($grub_mkrelpath "$grub_cfg_dirname")/$grub_cfg_basename"
 EOF
 }
 
 # Making sure grub.cfg not overwritten by grub-install above 
+make_grubcfg > "${efidir}/grub.cfg"
 
 # invoke grub-install with extra arguments if any
 if test "$no_grub_install" != "yes"; then
   if test "$removable" = "yes"; then
-    ${grub_install} --format=${grub_install_target} --fonts="${fonts}" --modules="${GRUB_MODULES}" ${grub_sbat_opt} --output="${efibootdir}/grub${efi_arch_lower}.efi" /boot/grub/grub.cfg="${grub_cfg}"
+    ${grub_install} --format=${grub_install_target} --fonts="${fonts}" --modules="${GRUB_MODULES}" ${grub_sbat_opt} --output="${efibootdir}/grub${efi_arch_lower}.efi" /boot/grub/grub.cfg="${efidir}/grub.cfg"
   else
-    ${grub_install} --format=${grub_install_target} --fonts="${fonts}" --modules="${GRUB_MODULES}" ${grub_sbat_opt} --output="${efidir}/grub${efi_arch_lower}.efi" /boot/grub/grub.cfg="${grub_cfg}"
+    ${grub_install} --format=${grub_install_target} --fonts="${fonts}" --modules="${GRUB_MODULES}" ${grub_sbat_opt} --output="${efidir}/grub${efi_arch_lower}.efi" /boot/grub/grub.cfg="${efidir}/grub.cfg"
   fi
 fi
 
@@ -466,11 +469,13 @@ if test "$skip_sbsign" = "no"; then
             if test -f "$sbsign_key" && test -f "$sbsign_cert"; then
                 sbsign --key "$sbsign_key" --cert "$sbsign_cert" --output "$target_grub_efi" "$target_grub_efi" > /dev/null 2>&1
             else
-                echo "Warning: keys not found at $sbsign_key or $sbsign_cert, skipping signing." >&2
+                echo "Error: keys not found at $sbsign_key or $sbsign_cert, aborted!" 1>&2
+                exit 1
             fi
         fi
     else
-        echo "Warning: 'sbsign' command not found, skipping signing." >&2
+        echo "Error: 'sbsign' command not found, aborted!" 1>&2
+        exit 1
     fi
 fi
 
@@ -480,17 +485,20 @@ if test "$no_nvram" = no && test -n "$bootloader_id"; then
     # Delete old entries from the same distributor.
     for bootnum in `$efibootmgr | grep '^Boot[0-9]' | \
         grep -F -i " $bootloader_id" | cut -b5-8`; do
-        $efibootmgr -b "$bootnum" -B > /dev/null 2>&1
+        $efibootmgr -b "$bootnum" -B 1>/dev/null
     done
 
     efidir_drive="$("$grub_probe" --target=drive --device-map= "$efidir" 2>/dev/null || true)"
     efidir_disk="$("$grub_probe" --target=disk --device-map= "$efidir" 2>/dev/null || true)"
     if test -z "$efidir_drive" || test -z "$efidir_disk"; then
-        echo "Can't find GRUB drive for $efidir; unable to create EFI Boot Manager entry." >&2
+        echo "Error: Can't find GRUB drive for $efidir; unable to create EFI Boot Manager entry." 1>&2
+        exit 1
     else
         efidir_part="$(echo "$efidir_drive" | sed 's/^([^,]*,[^0-9]*//; s/[^0-9].*//')"
         # create boot entry for default shim
         $efibootmgr -c -d "$efidir_disk" -p "$efidir_part" -w \
-          -L "$bootloader_id" -l "\\EFI\\$efi_distributor\\$efi_file" > /dev/null 2>&1
+          -L "$bootloader_id" -l "\\EFI\\$efi_distributor\\$efi_file" 1>/dev/null
     fi
 fi
+
+echo "Installation finished. No error reported."
