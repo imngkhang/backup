@@ -1,0 +1,13 @@
+[Trigger]
+Operation = Upgrade
+Operation = Install
+Type = Package
+Target = grub
+Target = shim-signed
+
+[Action]
+Description = Installing shim and grub... 
+When = PostTransaction
+Depends = grub
+Depends = shim-signed
+Exec = /usr/bin/shim-install --bootloader-id=arch --efi-directory=/boot/efi  

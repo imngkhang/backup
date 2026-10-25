@@ -1,0 +1,10 @@
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = *-ucode
+
+[Action]
+Description = Cleaning up all standalone ucode images...
+When = PostTransaction
+Exec = /bin/sh -c '/usr/bin/rm -f /boot/*-ucode.img'
