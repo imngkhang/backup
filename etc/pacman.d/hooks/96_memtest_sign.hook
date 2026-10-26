@@ -1,0 +1,12 @@
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = memtest86+-efi
+
+[Action]
+Description = Signing Memtest86+ for Secureboot...
+When = PostTransaction
+Depends = sbsigntools
+NeedsTargets
+Exec = /etc/pacman.d/scripts/kernel_sign --memtest

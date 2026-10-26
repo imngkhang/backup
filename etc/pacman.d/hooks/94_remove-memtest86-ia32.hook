@@ -1,0 +1,10 @@
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = memtest86+-efi
+
+[Action]
+Description = Cleaning up all standalone ucode images...
+When = PostTransaction
+Exec = /bin/sh -c '/usr/bin/rm -f /boot/memtest86+/memtest86ia32.efi'

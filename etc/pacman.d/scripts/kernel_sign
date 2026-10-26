@@ -5,6 +5,21 @@ set -e
 KEY_PATH="/etc/secureboot/keys/MOK.key"
 CERT_PATH="/etc/secureboot/keys/MOK.crt"
 
+sign_memtest() {
+    for memtest_path in "/boot/memtest86+/memtest86ia32.efi" "/boot/memtest86+/memtest86x64.efi"; do
+        if [ -f "$memtest_path" ]; then
+            echo "Signing Memtest86+ ($memtest_path) with sbsign"
+            /usr/bin/sbsign --key "$KEY_PATH" --cert "$CERT_PATH" --output "$memtest_path" "$memtest_path"
+        fi
+    done
+}
+
+if [ "$1" = "--memtest" ] || [ "$1" = "-m" ]; then
+    sign_memtest
+    echo "Signing finished. No error reported."
+    exit
+fi
+
 while read -r file; do
     [ -f "/$file" ] || continue
 
