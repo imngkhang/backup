@@ -1,0 +1,12 @@
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Path
+Target = usr/lib/modules/*/vmlinuz
+
+[Action]
+Description = Signing kernel for Secureboot...
+When = PostTransaction
+Depends = sbsigntools
+NeedsTargets
+Exec = /etc/pacman.d/scripts/kernel_sign 

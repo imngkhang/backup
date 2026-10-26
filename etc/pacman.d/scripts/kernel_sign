@@ -1,0 +1,31 @@
+#!/bin/sh
+
+set -e
+
+KEY_PATH="/etc/secureboot/keys/MOK.key"
+CERT_PATH="/etc/secureboot/keys/MOK.crt"
+
+while read -r file; do
+    [ -f "/$file" ] || continue
+
+    k_dir=$(dirname "$file")
+    pkgbase_file="/$k_dir/pkgbase"
+
+    if [ -f "$pkgbase_file" ]; then
+        read -r pkgbase < "$pkgbase_file" 2>/dev/null
+        preset="/etc/mkinitcpio.d/${pkgbase}.preset"
+
+        if [ -s "$preset" ]; then
+            k_img=$(grep -oP "(?<=^ALL_kver=).*|(?<=^default_image=).*|(?<=^default_kver=).*" "$preset" | head -n1 | tr -d "'\"")
+
+            [ -z "$k_img" ] && k_img="/boot/vmlinuz-${pkgbase}"
+
+            if [ -f "$k_img" ]; then
+                echo "Signing $k_img with sbsign"
+                /usr/bin/sbsign --key "$KEY_PATH" --cert "$CERT_PATH" --output "$k_img" "$k_img"
+            fi
+        fi
+    fi
+done
+
+echo "Signing finished. No error reported." 
