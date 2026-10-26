@@ -1,0 +1,14 @@
+#!/bin/sh
+set -e
+
+grub_mkrelpath="/usr/bin/grub-mkrelpath"
+grub_cfg="/boot/grub/grub.cfg"
+grub_cfg_dirname=`dirname $grub_cfg`
+grub_cfg_basename=`basename $grub_cfg`
+
+cat <<EOF
+if [ "\${prefix}" = "(memdisk)/boot/grub" ]; then
+    set prefix=(\${root})`${grub_mkrelpath} ${grub_cfg_dirname}`
+fi
+EOF
+
